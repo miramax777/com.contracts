@@ -6,7 +6,7 @@
 
     <groupId>com.contracts</groupId>
     <artifactId>com.contracts</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.2-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>Currency Ticker</name>
     <description>Microservice For Collecting Crypto Currency Prices</description>
@@ -15,67 +15,110 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <javac.target>11</javac.target>
         <java.version>11</java.version>
+        <github.global.server>github</github.global.server>
+        <github.global.userName>miramax777</github.global.userName>
+        <github.global.password>Denny369258</github.global.password>
+        <github.maven-plugin>0.9</github.maven-plugin>
     </properties>
 
-    <repositories>
+    <distributionManagement>
         <repository>
-            <id>myMavenRepo.read</id>
-            <url>https://mymavenrepo.com/repo/aQDq3ISoCPDcYBveeCtb/</url>
+            <id>internal.repo</id>
+            <name>Temporary Staging Repository</name>
+            <url>file://${project.build.directory}/mvn-repo</url>
         </repository>
-    </repositories>
+    </distributionManagement>
 
     <dependencies>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
-            <version>2.3.1.RELEASE</version>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>3.12.0</version>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
+<!--            <plugin>-->
+<!--                <artifactId>maven-resources-plugin</artifactId>-->
+<!--                <version>3.1.0</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>copy-resources</id>-->
+<!--                        &lt;!&ndash; here the phase you need &ndash;&gt;-->
+<!--                        <phase>validate</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>copy-resources</goal>-->
+<!--                        </goals>-->
+<!--                        <configuration>-->
+<!--                            <outputDirectory>${basedir}/target/mvn-repo</outputDirectory>-->
+<!--                            <resources>-->
+<!--                                <resource>-->
+<!--                                    <directory>src/main/java/*</directory>-->
+<!--                                    <filtering>true</filtering>-->
+<!--                                    <includes>-->
+<!--                                        <include>-->
+<!--                                            **/*.proto-->
+<!--                                        </include>-->
+<!--                                    </includes>-->
+<!--                                </resource>-->
+<!--                            </resources>-->
+<!--                        </configuration>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
+
+<!--            <plugin>-->
+<!--                <artifactId>maven-compiler-plugin</artifactId>-->
+<!--                <version>3.8.1</version>-->
+<!--                <configuration>-->
+<!--                    <source>${java.version}</source>-->
+<!--                    <target>${java.version}</target>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
+
             <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>2.3.1.RELEASE</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <groupId>com.google.protobuf.tools</groupId>
+                <artifactId>maven-protoc-plugin</artifactId>
                 <configuration>
-                    <source>11</source>
-                    <target>11</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-pmd-plugin</artifactId>
-                <version>3.13.0</version>
-                <configuration>
-                    <!-- failOnViolation is actually true by default, but can be disabled -->
-                    <failOnViolation>true</failOnViolation>
-                    <!-- printFailingErrors is pretty useful -->
-                    <printFailingErrors>true</printFailingErrors>
-                    <verbose>true</verbose>
-                    <rulesets>
-                        <rulset>/quality_control/pmd/pmd-settings.xml</rulset>
-                    </rulesets>
-                    <linkXRef>false</linkXRef>
+                    <protocExecutable>/usr/local/bin/protoc</protocExecutable>
                 </configuration>
                 <executions>
                     <execution>
-                        <id>validate</id>
-                        <phase>validate</phase>
                         <goals>
-                            <goal>check</goal>
+                            <goal>compile</goal>
+                            <goal>testCompile</goal>
                         </goals>
                     </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.8.1</version>
+                <configuration>
+                    <altDeploymentRepository>internal.repo::default::file://${project.build.directory}/mvn-repo</altDeploymentRepository>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.github.github</groupId>
+                <artifactId>site-maven-plugin</artifactId>
+                <version>${github.maven-plugin}</version>
+                <configuration>
+                    <message>Maven artifacts for ${project.version}</message>
+                    <noJekyll>true</noJekyll>
+                    <outputDirectory>${project.build.directory}/mvn-repo</outputDirectory>
+                    <branch>refs/heads/mvn-repo</branch>
+                    <includes><include>**/*</include></includes>
+                    <repositoryName>com.contracts</repositoryName>
+                    <repositoryOwner>miramax777</repositoryOwner>
+                </configuration>
+                <executions>
                     <execution>
-                        <phase>package</phase>
                         <goals>
-                            <goal>check</goal>
+                            <goal>site</goal>
                         </goals>
+                        <phase>deploy</phase>
                     </execution>
                 </executions>
             </plugin>
